@@ -1,0 +1,252 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Frankie Nevarez fgn78"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+class_diag <- function(probs,truth){ 
+  #CONFUSION MATRIX: CALCULATE ACCURACY, TPR, TNR, PPV 
+  if(is.character(truth)==TRUE) truth<-as.factor(truth) 
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1 
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1))) 
+  acc=sum(diag(tab))/sum(tab) 
+  sens=tab[2,2]/colSums(tab)[2] 
+  spec=tab[1,1]/colSums(tab)[1] 
+  ppv=tab[2,2]/rowSums(tab)[2] 
+  
+#CALCULATE EXACT AUC 
+  ord<-order(probs, decreasing=TRUE) 
+  probs <- probs[ord]; truth <- truth[ord] 
+  TPR=cumsum(truth)/max(1,sum(truth))  
+  FPR=cumsum(!truth)/max(1,sum(!truth)) 
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE) 
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1) 
+  n <- length(TPR) 
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n])) 
+  data.frame(acc,sens,spec,ppv,auc) 
+}
+```
+
+# Guidelines and Rubric
+
+# **0. (5 pts)** 
+*Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph. What are they measuring? How many observations?*
+
+The dataset I have chosen contains 9 variables and 601 observations for data on extramarital affairs.  These varibales include sex, age, number of years married, whether they have children, religiosity, level of education, occupation (according to Hollingshead's classification), self rating on the happiness of their marriage, and number of estramarital "encounters" during the past year with each observation being a single individual.  The children variable is a binomial variable where 1 is having one or more children and 0 is having no children.  The religiosity is a categorical variable in a 1-5 scale where 1 is antireligous, 2 is not religous, 3 is slightly, 4 is somewhat, and 5 is very religious.  Level of education is also a categorical variable where 9 is grad school, 12 is high school graduate, 14 is some college, 17 is some graduate work, 18 is master's degree, and 20 is some advanced degree such as a PhD. or M.D.  Occupation is a categorical variable where 1 is student, 2 is semiskilled or unskilled worker (farming, agriculture), 3 is white caollar (sales, clerical), 4 is skilled worker (teacher, nurse), 5 is managerial or administrative, 6 is professsional with advanced degree, and 7 is not specified but presumably above professional with advanced degree.  Rate is a categorical variable on the self rated marriage happiness where 1 is very unhappy, 2 is somewhat unhappy, 3 is average, 4 is happier than average, and 5 is very happy.  Age, years maried, and number of extramarital encounters are all numeric variables.
+
+# **1. (15 pts)** 
+*Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all is unreasonable or doesn't make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss some of the MANOVA assumptions and whether or not they are likely to have been met here (no need for anything too in-depth) (2).*
+
+```{R}
+library(Ecdat)
+library(rstatix)
+group <- Fair$rate
+DVs <- Fair %>% select(age,ym,nbaffairs)
+sapply(split(DVs,group), mshapiro_test)
+
+man1<-manova(cbind(age,ym,nbaffairs)~rate, data=Fair)
+summary(man1)
+summary.aov(man1)
+
+pairwise.t.test(Fair$age, Fair$rate, p.adj = "none")
+pairwise.t.test(Fair$ym, Fair$rate, p.adj = "none")
+pairwise.t.test(Fair$nbaffairs, Fair$rate, p.adj = "none")
+
+1-.95^7
+.05/7
+```
+
+I conducted 1 MANOVA, 3 univariate ANOVAs, and 3 post hoc t tests for a total of 7 tests.  The probability of at least 1 type 1 error with 7 tests is 0.3017.  After adjusting the significance level for the 7 tests using the bonferroni correction, with an adjusted significance level of 0.0071, they still show significant differences.  The MANOVA assumptions were not met because the multivariate normality assumption failed the shapiro test.
+
+# **2. (10 pts)** 
+*Perform some kind of randomization test on your data (that makes sense). The statistic can be anything you want (mean difference, correlation, F-statistic/ANOVA, chi-squared), etc. State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).*
+
+```{R}
+Fair %>% group_by(sex) %>% summarize(means=mean(nbaffairs)) %>% summarize(`mean_diff:`=diff(means))
+
+rand_dist<-vector()
+for(i in 1:5000){new<-data.frame(nbaffairs=sample(Fair$nbaffairs),sex=Fair$sex)
+rand_dist[i]<-mean(new[new$sex=="male",]$nbaffairs)-
+mean(new[new$sex=="female",]$nbaffairs)}
+
+{hist(rand_dist,main="Affairs by Sex",ylab="Count"); abline(v = c(-0.07746, 0.07746),col="red")}
+
+mean(rand_dist>0.07746 | rand_dist < -0.07746)
+```
+
+A mean difference test was run to determine if there was a difference in number of extramarital encounters in the past year between the sexes.  The null hypothesis is there is no difference between the sexes.  The alternative hypothesis is the true difference in means is not equal to 0.  The pvalue is 0.7752 which means we fail to reject the null hypothesis, meaning we can reasonably assume there is no mean difference in extramarital encounters between the two sexes in the past year.
+
+# **3. (40 pts)** 
+*Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.*
+
+    - Interpret the coefficient estimates (do not discuss significance) (10)
+    - Plot the regression using `ggplot()` using geom_smooth(method="lm"). If your interaction is numeric by numeric, refer to code in the slides to make the plot or check out the `interactions` package, which makes this easier. If you have 3 or more predictors, just chose two of them to plot for convenience. (10)
+    - What proportion of the variation in the outcome does your model explain? (4)
+    - Check assumptions of linearity, normality, and homoskedasticity either graphically or using a hypothesis test (5)
+    - Regardless, recompute regression results with robust standard errors via `coeftest(..., vcov=vcovHC(...))`. Discuss significance of results, including any changes from before/after robust SEs if applicable. (10)
+
+```{R}
+fit3<-lm(nbaffairs~rate, data= Fair)
+summary(fit3)
+Fair%>%ggplot(aes(rate,nbaffairs))+geom_point()+geom_smooth(method = 'lm',se=F)
+
+fit3.1<-lm(nbaffairs~religious, data= Fair)
+summary(fit3.1)
+
+Fair$rate_c <- Fair$rate - mean(Fair$rate)
+Fair$religious_c <- Fair$religious - mean(Fair$religious)
+fit3.2<-lm(nbaffairs ~ rate_c * religious_c, data=Fair)
+summary(fit3.2)
+
+resids<-fit3.2$residuals
+shapiro.test(resids)
+library(sandwich)
+library(lmtest)
+bptest(fit3.2)
+
+summary(fit3.2)$coef[,1:3]
+coeftest(fit3.2, vcov = vcovHC(fit3.2))[,1:3]
+```
+
+Slope for marriage rating is significantly associated with extramarital encounters for an average religiosity: for every 1 unit increase in marriage rating, predicted number of extramarital encounters decreases by 0.8253 units.  SLope for religiosity is significantly associated with extramarital encounters for an average marriage rating: for every 1 unit increase in religiosity, predicted number of extramarital encounters decreases by 0.3902 units.  Slope for religiosity on extramarital encounters for average marriage rating is 0.0123 and is not significant.  The model explains 9.712%, so 9.712% of variability in number of extramarital encounters were accounted for with marriage rating and religiosity.  Normally distributed residuals was tested with the Shapiro-Wilk test and homoskedasticity was tested with the Breush-Pagan test, both of which failed the assumptions.  After correcting for robust standard errors, it resulted in a larger standard error for all variables.  A larger standard error will result in a smaller T statistic and hence a larger p value.  A larger p value means there is less of a chance to reject the null hypothesis.
+
+# **4. (5 pts)** 
+*Rerun same regression model (with the interaction), but this time compute bootstrapped standard errors (either by resampling observations or residuals). Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)*
+
+```{R}
+boot_dat<- sample_frac(Fair, replace=T)
+samp_distn<-replicate(5000, {
+  boot_dat <- sample_frac(Fair, replace=T)
+  fit4 <- lm(nbaffairs ~ rate * religious, data=boot_dat)
+  coef(fit4)
+})
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+```
+
+The bootstrapped standard errors were larger with each variable compared to the original and robust SE except for the self rated marriage happiness.  For this variable, the bootstrapped SE was smaller than both robust SE and the original SE.  The variables that had larger SEs (intercept, religious, and the interaction) created larger p values than in the original and robust SEs meaning there is less of a chance to reject the null hypothesis.
+
+# **5. (30 pts)** 
+*Fit a logistic regression model predicting a binary variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary).* 
+
+    - Interpret coefficient estimates in context (10)
+    - Report a confusion matrix for your logistic regression (5)
+    - Compute and discuss the Accuracy, Sensitivity (TPR), Specificity (TNR), Precision (PPV), and AUC of your model (5)
+    - Using ggplot, make a density plot of the log-odds (logit) colored/grouped by your binary outcome variable (5)
+    - Generate an ROC curve (plot) and calculate AUC (either manually or with a package); interpret (5)
+
+```{R}
+Fair1<-Fair%>%mutate(y=ifelse(sex=="male",1,0))
+fit5<-glm(y~education+occupation, family="binomial", data=Fair1)
+coeftest(fit5)
+exp(coeftest(fit5))
+
+Fair1 <- Fair1%>%mutate(prob=predict(fit5, type= "response"), prediction=ifelse(prob>.5,1,0))
+table(predict=as.numeric(Fair1$prob>.5),truth=Fair1$y)%>%addmargins
+#Accuracy
+(197+210)/601
+#TPR
+210/286
+#TNR
+197/315
+#PPV
+210/328
+
+Fair1$logit<-predict(fit5,type="link")
+Fair1%>%ggplot()+geom_density(aes(logit,color=sex,fill=sex), alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=sex))
+
+library(plotROC)
+classify<-Fair1%>%transmute(prob,prediction,truth=y)
+ROCplot<-ggplot(classify)+geom_roc(aes(d=truth,m=prob), n.cuts=0)
+ROCplot
+calc_auc(ROCplot)
+```
+
+Controlling for education, every 1 unit increase in occupation, odds of predicted male increase by a factor of 1.661.  Controlling for occupation, every 1 unit increase in education, odds of predicted male increase by a factor of 1.239.  The proportion of correctly identifying sex based on occupation and education was 67.7%.  The proportion of correctly identified males (TPR) and females (TNR) was 73.4% and 62.5%, respectively.  The precision on correctly predicted males who acutally were was 64.0%.  The calculated AUC was 0.789 which is decent indicating our model was fair at predicting male or female based on their occupation and education.
+
+# **6. (25 pts)** 
+*Perform a logistic regression predicting the same binary response variable from ALL of the rest of your variables (the more, the better!)*
+
+    - Fit model, compute in-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, AUC), and interpret (5)
+    - Perform 10-fold (or repeated random sub-sampling) CV with the same model and report average out-of-sample classification diagnostics (Accuracy, Sensitivity, Specificity, Precision, and AUC); interpret AUC and compare with the in-sample metrics (10)
+    - Perform LASSO on the same model/variables. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., `lambda.1se`). Discuss which variables are retained. (5)
+    - Perform 10-fold CV using only the variables lasso selected: compare model's out-of-sample AUC to that of your logistic regressions above (5)
+
+```{R}
+Fair2<-Fair1 %>%mutate(y = ifelse(sex == "male",1,0))
+fit6<-glm(y~age+ym+child+religious+education+occupation+rate+nbaffairs, data=Fair2, family="binomial")
+prob6<-predict(fit6,type="response")
+class_diag(prob6,Fair2$y)
+
+set.seed(1234)
+k=10
+
+data<-Fair2[sample(nrow(Fair2)),] #randomly order rows
+folds<-cut(seq(1:nrow(Fair2)),breaks=k,labels=F) #create 10 folds
+
+diags<-NULL
+for(i in 1:k){
+  train<-data[folds!=i,]
+  test<-data[folds==i,]
+  truth<-test$y
+  
+  fit6<-glm(y~age+ym+child+religious+education+occupation+rate+nbaffairs,data=train,family="binomial")
+  probs6.1<-predict(fit6,newdata = test,type="response")
+  diags<-rbind(diags,class_diag(probs6.1,truth))
+}
+summarize_all(diags,mean)
+
+library(glmnet)
+y1<-as.matrix(Fair2$y)
+x<-model.matrix(y~age+ym+child+religious+education+occupation+rate+nbaffairs,data=Fair2)[,-1]
+
+cv<-cv.glmnet(x,y1,family="binomial")
+lasso<-glmnet(x,y1,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+fit6.2<-glm(y~age+ym+child+education+occupation, data=Fair2, family="binomial")
+
+set.seed(1234)
+k=10
+
+data <- Fair2 %>% sample_frac #put rows of dataset in random order
+folds <- ntile(1:nrow(Fair2),n=10) #create fold labels
+
+diags<-NULL
+for(i in 1:k){
+  train <- data[folds!=i,]
+  test <- data[folds==i,]
+  truth <- test$y
+
+  fit <- glm(y~age+ym+child+education+occupation,data=train, family="binomial")
+  probs6.2 <- predict(fit6.2, newdata=test, type="response")
+  diags<-rbind(diags,class_diag(probs6.2,truth))
+}
+diags%>%summarize_all(mean)
+```
+
+All of the classification diagnostics, including the AUC, for all of the explanatory variables was more predictive than the previous model that only had two explanatory variables.  The AUC increased from 0.789 to 0.812 giving a "good" model for the predictability of sex.  Performing an out of sample 10 fold CV on the model gives a slightly worse AUC than the in sample metric but not enough to indicate overfitting (<0.01 difference).  After performing a LASSO on the model, the variables age, ym, child, education, and occupation were retained meaning they were the most predictive variables.  Performing a 10 fold CV on the significant varibales did yield a better out of sample AUC than the previous logistic regression at 0.808 as compared to 0.803.  However, the difference is small because there was no overfitting in the out of sample model.

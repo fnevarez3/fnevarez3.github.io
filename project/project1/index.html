@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Frankie Nevarez" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1: Exploratory Data Analysis</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1: Exploratory Data Analysis</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="introduction-5-pts" class="section level4">
+<h4>0. Introduction (5 pts)</h4>
+<ul>
+<li>Write a narrative introductory paragraph or two describing the datasets you have chosen, the variables they contain, how they were acquired, and why they are interesting to you. Expand on potential associations you may expect, if any.</li>
+</ul>
+<p>The datasets I have chosen are from the package fivethirtyeight. One of the datasets carries the statistics on the different regions and divisions in the United States and the other dataset compares hate crime to income inequality for each state. Variables include unemployment rate, median household income, white and non white residents, and annual hate crime rate. These are interesting datasets as hate crimes continue to be seen throughout the US and I wanted to see if there was any links with any of the datasets including region, division, and income inequality. I predict there will be more hatecrimes in regions with higher minorities just due to more possibility.</p>
+</div>
+<div id="tidying-rearranging-widelong-10-pts" class="section level4">
+<h4>1. Tidying: Rearranging Wide/Long (10 pts)</h4>
+<ul>
+<li>Tidy the datasets (using the <code>tidyr</code> functions <code>pivot_longer</code>/<code>gather</code> and/or <code>pivot_wider</code>/<code>spread</code>)</li>
+<li>If you data sets are already tidy, be sure to use those functions somewhere else in your project (e.g., for rearranging summary statistics)</li>
+<li>Document the process (describe in words what was done)</li>
+</ul>
+<pre class="r"><code>library(tidyverse)
+library(fivethirtyeight)
+# already tidy. Used &#39;pivot_longer&#39; on question 4.</code></pre>
+</div>
+<div id="joiningmerging-10-pts" class="section level4">
+<h4>2. Joining/Merging (10 pts)</h4>
+<ul>
+<li>Join your datasets into one using a <code>dplyr</code> join function</li>
+<li>If you have multiple observations on the joining variable in either dataset, fix this by collapsing via summarize</li>
+<li>Discuss the process in words, including why you chose the join you did</li>
+<li>Discuss which cases were dropped, if any, and potential problems with this</li>
+</ul>
+<pre class="r"><code>joineddata &lt;- full_join(hate_crimes, state_info, by = &quot;state&quot;)
+head(joineddata)</code></pre>
+<pre><code>## # A tibble: 6 x 16
+##   state state_abbrev.x median_house_inc share_unemp_seas share_pop_metro
+##   &lt;chr&gt; &lt;chr&gt;                     &lt;int&gt;            &lt;dbl&gt;           &lt;dbl&gt;
+## 1 Alab… AL                        42278            0.06             0.64
+## 2 Alas… AK                        67629            0.064            0.63
+## 3 Ariz… AZ                        49254            0.063            0.9 
+## 4 Arka… AR                        44922            0.052            0.69
+## 5 Cali… CA                        60487            0.059            0.97
+## 6 Colo… CO                        60940            0.04             0.8 
+## # … with 11 more variables: share_pop_hs &lt;dbl&gt;, share_non_citizen &lt;dbl&gt;,
+## #   share_white_poverty &lt;dbl&gt;, gini_index &lt;dbl&gt;, share_non_white &lt;dbl&gt;,
+## #   share_vote_trump &lt;dbl&gt;, hate_crimes_per_100k_splc &lt;dbl&gt;,
+## #   avg_hatecrimes_per_100k_fbi &lt;dbl&gt;, state_abbrev.y &lt;chr&gt;, division &lt;chr&gt;,
+## #   region &lt;chr&gt;</code></pre>
+<p>Each of my datasets had the same number of rows because each of the datasets is by state totaling 51 observations for each (one extra for Distric of Columbia). Nothing was dropped in the ‘full_join’ as the ID variables matched perfectly. Since the IDs (rows) matched, all the joins would have looked the same and no rows would have been dropped in any of the joins.</p>
+</div>
+<div id="wrangling-40-pts" class="section level4">
+<h4>3. Wrangling (40 pts)</h4>
+<ul>
+<li>Use all six core <code>dplyr</code> functions in the service of generating summary tables/statistics (12 pts)
+<ul>
+<li>Use mutate at least once to generate a variable that is a function of at least one other variable</li>
+</ul></li>
+<li>Compute summary statistics for each of your variables using <code>summarize</code> alone and with <code>group_by</code> (if you have more than 10 variables, fine to just focus on 10) (20 pts)
+<ul>
+<li>Use at least 5 unique functions inside of summarize (e.g., mean, sd)</li>
+<li>For at least 2, use summarize after grouping by a categorical variable. Create one by dichotomizing a numeric if necessary</li>
+<li>If applicable, at least 1 of these should group by two categorical variables</li>
+</ul></li>
+<li>Summarize the procedure and discuss all (or the most interesting) results in no more than two paragraphs (8 pts)</li>
+</ul>
+<pre class="r"><code>diverse &lt;- joineddata %&gt;% filter(share_non_white &gt;= 0.25) %&gt;% 
+    arrange(avg_hatecrimes_per_100k_fbi) %&gt;% select(-2, -7, -9, 
+    -14, -11, -12) %&gt;% mutate(income_crime = median_house_inc/avg_hatecrimes_per_100k_fbi)
+head(diverse)</code></pre>
+<pre><code>## # A tibble: 6 x 11
+##   state median_house_inc share_unemp_seas share_pop_metro share_pop_hs
+##   &lt;chr&gt;            &lt;int&gt;            &lt;dbl&gt;           &lt;dbl&gt;        &lt;dbl&gt;
+## 1 Geor…            49555            0.058            0.82        0.839
+## 2 Miss…            35521            0.061            0.45        0.804
+## 3 Flor…            46140            0.052            0.96        0.853
+## 4 Texas            53875            0.042            0.92        0.799
+## 5 Arka…            44922            0.052            0.69        0.824
+## 6 Illi…            54916            0.054            0.9         0.864
+## # … with 6 more variables: share_white_poverty &lt;dbl&gt;, share_non_white &lt;dbl&gt;,
+## #   avg_hatecrimes_per_100k_fbi &lt;dbl&gt;, division &lt;chr&gt;, region &lt;chr&gt;,
+## #   income_crime &lt;dbl&gt;</code></pre>
+<pre class="r"><code>diverse %&gt;% group_by(region) %&gt;% summarize(hatecrime = mean(avg_hatecrimes_per_100k_fbi, 
+    na.rm = T), sd(avg_hatecrimes_per_100k_fbi, na.rm = T), min(avg_hatecrimes_per_100k_fbi, 
+    na.rm = T), max(avg_hatecrimes_per_100k_fbi, na.rm = T))</code></pre>
+<pre><code>## # A tibble: 4 x 5
+##   region  hatecrime `sd(avg_hatecrimes_… `min(avg_hatecrime… `max(avg_hatecrime…
+##   &lt;chr&gt;       &lt;dbl&gt;                &lt;dbl&gt;               &lt;dbl&gt;               &lt;dbl&gt;
+## 1 Midwest      1.59                0.778               1.04                 2.14
+## 2 Northe…      3.47                1.39                1.28                 4.80
+## 3 South        1.96                2.58                0.412               11.0 
+## 4 West         2.69                0.796               1.66                 3.82</code></pre>
+<pre class="r"><code>diverse %&gt;% group_by(region, division) %&gt;% summarize(median(avg_hatecrimes_per_100k_fbi, 
+    na.rm = T))</code></pre>
+<pre><code>## # A tibble: 9 x 3
+## # Groups:   region [4]
+##   region    division           `median(avg_hatecrimes_per_100k_fbi, na.rm = T)`
+##   &lt;chr&gt;     &lt;chr&gt;                                                         &lt;dbl&gt;
+## 1 Midwest   East North Central                                            1.04 
+## 2 Midwest   West North Central                                            2.14 
+## 3 Northeast Mid-Atlantic                                                  3.76 
+## 4 Northeast New England                                                   3.77 
+## 5 South     East South Central                                            1.81 
+## 6 South     South Atlantic                                                1.40 
+## 7 South     West South Central                                            0.975
+## 8 West      Mountain                                                      2.46 
+## 9 West      Pacific                                                       2.90</code></pre>
+<p>It was interesting to find out that the region with the most annual hatecrimes was the Norteast on average. The South was also very interesting as it has the state with the least amount of annual hatecrimes, Georgia, and the territory with the most, District of Columbia (DC). DC is an outlier though because it is greater than 3 standard deviations from the mean which is likely due to its dense political area but small geographic area. I also found that states in the Mid Atlantic division (NY,PA,NJ) experienced the most hate crime annually while states in the West South Central (AR,LA,OK,TX) experienced the least.</p>
+</div>
+<div id="visualizing-30-pts" class="section level4">
+<h4>4. Visualizing (30 pts)</h4>
+<ul>
+<li><p>Create a correlation heatmap of your numeric variables the way we did in class</p></li>
+<li><p>Create two more effective, polished plots with ggplot</p>
+<ul>
+<li>Each plot should map 3+ variables to aesthetics</li>
+<li>Each plot should have a title and clean labeling for all mappings</li>
+<li>Change at least one default theme element and color for at least one mapping per plot</li>
+<li>For at least one plot, add more tick marks (x, y, or both) than are given by default</li>
+<li>For at least one plot, use the stat=“summary” function</li>
+<li>Supporting paragraph or two (for each plot) describing the relationships/trends that are apparent</li>
+</ul></li>
+</ul>
+<pre class="r"><code>cormat &lt;- joineddata %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;pair&quot;)
+
+tidycor &lt;- cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;)
+
+tidycor %&gt;% ggplot(aes(var1, var2, fill = correlation)) + geom_tile() + 
+    scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, high = &quot;blue&quot;) + 
+    geom_text(aes(label = round(correlation, 2)), color = &quot;black&quot;, 
+        size = 2) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + coord_fixed()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(joineddata, aes(share_non_citizen, share_pop_metro)) + 
+    geom_point(aes(color = region)) + geom_smooth(method = &quot;lm&quot;) + 
+    scale_y_continuous(breaks = seq(0, 1.5, 0.25)) + ggtitle(&quot;Metro v Non US Citizen&quot;) + 
+    ylab(&quot;Metropolitan %&quot;) + xlab(&quot;Non US Citizen&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In this graph, I wanted to compare two of the variables with the highest correlation. The variables ‘share_pop_metro’ and ‘share_non_citizen’ had a correlation coefficient of 0.75. The implications are that non US citizens tend to live more in metropolitan areas. The more non US citizens there are in a state, the higher the share of the state population that lives in metropolitan areas.</p>
+<pre class="r"><code>ggplot(joineddata, aes(x = region, y = avg_hatecrimes_per_100k_fbi, 
+    fill = division)) + geom_bar(stat = &quot;summary&quot;, fun = mean) + 
+    ggtitle(&quot;Hate Crimes by Region and Division&quot;) + ylab(&quot;Hate crimes/100k population&quot;) + 
+    xlab(&quot;Region&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>This grouped bar chart shows the total number of hate crimes per 100,000 people in each region and division. This is different than the the previous means taken by region in question 3 because instead of averaging out the regions by division, it adds the means of each division to get the totals for region. For example, the South region has 3 divisions that are added together which makes it the largest but if the three divisions were averaged out it would have the least average hate crimes per 100,000 people as seen in question 3. This is an interesting graph comparing the totals for each of the regions and divisions for annual hate crimes.</p>
+</div>
+<div id="dimensionality-reduction-30-pts" class="section level4">
+<h4>5. Dimensionality Reduction (30 pts)</h4>
+<ul>
+<li><p>Either k-means/PAM clustering or PCA (inclusive “or”) should be performed on at least three of your variables (3 is just the minimum: using more/all of them will make this much more interesting!)</p>
+<ul>
+<li>All relevant steps discussed in class (e.g., picking number of PCs/clusters)</li>
+<li>A visualization of the clusters or the first few principal components (using ggplot2)</li>
+<li>Supporting paragraph or two describing results found, interpreting the clusters/PCs in terms of the original variables and observations, discussing goodness of fit or variance explained, etc.</li>
+</ul></li>
+</ul>
+<pre class="r"><code>project1 &lt;- joineddata %&gt;% select(3, 10, 13) %&gt;% slice(-12)
+
+
+kmeans1 &lt;- project1 %&gt;% scale %&gt;% kmeans(3)
+kmeans1</code></pre>
+<pre><code>## K-means clustering with 3 clusters of sizes 14, 16, 20
+## 
+## Cluster means:
+##   median_house_inc share_non_white avg_hatecrimes_per_100k_fbi
+## 1        1.2030329       0.0705977                   0.7650951
+## 2       -0.6708535       0.9495107                  -0.4571509
+## 3       -0.3054402      -0.8090269                  -0.1698458
+## 
+## Clustering vector:
+##  [1] 2 1 2 3 2 1 1 2 1 2 2 3 2 3 3 3 3 2 3 1 1 3 1 2 3 3 3 2 1 1 2 2 2 1 3 2 1 3
+## [39] 3 2 3 3 2 1 3 1 1 3 3 3
+## 
+## Within cluster sum of squares by cluster:
+## [1] 42.03431 16.53206 19.40369
+##  (between_SS / total_SS =  47.0 %)
+## 
+## Available components:
+## 
+## [1] &quot;cluster&quot;      &quot;centers&quot;      &quot;totss&quot;        &quot;withinss&quot;     &quot;tot.withinss&quot;
+## [6] &quot;betweenss&quot;    &quot;size&quot;         &quot;iter&quot;         &quot;ifault&quot;</code></pre>
+<pre class="r"><code>kmeansclust &lt;- project1 %&gt;% mutate(cluster = as.factor(kmeans1$cluster))
+kmeansclust %&gt;% ggplot(aes(share_non_white, avg_hatecrimes_per_100k_fbi, 
+    median_house_inc, color = cluster)) + geom_point() + ggtitle(&quot;Kmeans Cluster&quot;) + 
+    ylab(&quot;Avg Hate Crimes&quot;) + xlab(&quot;Non White Share&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
+In this graph, I found the kmeans cluster for my dataset using the variables ‘share_non_white’,‘avg_hatecrimes_per_100k_fbi’, and ‘median_house_inc’. The reason I chose these variables is because I wanted to see how these variables grouped together. It was pretty tough finding accurate clusters as the variables were not strong correlations with one another as shown by the heatmat above.</p>
+</div>
+<div id="neatness-holisticdiscretionary-points-5-pts" class="section level4">
+<h4>6. Neatness, Holistic/Discretionary Points (5 pts)</h4>
+<ul>
+<li>Keep things looking nice! Your project should not knit to more than 30 or so pages (probably closer to 10-20)! You will lose points if you print out your entire dataset(s), have terrible formatting, etc. If you start your project in a fresh .Rmd file, you are advised to copy set-up code below and include it: this will do things like automatically truncate if you accidentally print out a huge dataset, etc. Imagine this is a polished report you are giving to your PI or boss to summarize your work researching a topic.</li>
+</ul>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
