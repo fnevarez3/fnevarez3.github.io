@@ -1,0 +1,29 @@
+---
+title: Blog Post
+author: 'Frankie Nevarez'
+date: '2021-05-09'
+slug: blog-post
+categories: []
+tags: []
+description: 'python'
+---
+```{python}
+2+2
+_+2
+```
+
+```{R}
+library(reticulate)
+hi<-"Hello"
+```
+
+```{python}
+hi="world"
+print(r.hi,hi)
+```
+
+```{R}
+cat(c(hi,py$hi)) 
+```
+
+![](/post/2021-05-10-blog-post_files/synthetic-biology.jpg)

@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         May 9, 2021 
             &nbsp;&nbsp;
             
           </h4>
@@ -186,7 +186,7 @@ mean(new[new$sex==&quot;female&quot;,]$nbaffairs)}
 {hist(rand_dist,main=&quot;Affairs by Sex&quot;,ylab=&quot;Count&quot;); abline(v = c(-0.07746, 0.07746),col=&quot;red&quot;)}</code></pre>
 <p><img src="../../project/project2_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>mean(rand_dist&gt;0.07746 | rand_dist &lt; -0.07746)</code></pre>
-<pre><code>## [1] 0.7764</code></pre>
+<pre><code>## [1] 0.7718</code></pre>
 <p>A mean difference test was run to determine if there was a difference in number of extramarital encounters in the past year between the sexes. The null hypothesis is there is no difference between the sexes. The alternative hypothesis is the true difference in means is not equal to 0. The pvalue is 0.7752 which means we fail to reject the null hypothesis, meaning we can reasonably assume there is no mean difference in extramarital encounters between the two sexes in the past year.</p>
 </div>
 <div id="pts-3" class="section level1">
@@ -307,8 +307,8 @@ samp_distn&lt;-replicate(5000, {
 })
 
 samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
-<pre><code>##   (Intercept)      rate religious rate:religious
-## 1    1.982624 0.4590433 0.6021128      0.1386285</code></pre>
+<pre><code>##   (Intercept)     rate religious rate:religious
+## 1     1.98957 0.462588 0.5989051      0.1379619</code></pre>
 <p>The bootstrapped standard errors were larger with each variable compared to the original and robust SE except for the self rated marriage happiness. For this variable, the bootstrapped SE was smaller than both robust SE and the original SE. The variables that had larger SEs (intercept, religious, and the interaction) created larger p values than in the original and robust SEs meaning there is less of a chance to reject the null hypothesis.</p>
 </div>
 <div id="pts-5" class="section level1">
